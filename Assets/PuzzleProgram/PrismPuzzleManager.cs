@@ -14,6 +14,9 @@ public class PrismPuzzleManager : MonoBehaviour
 
     void Start()
     {
+        isSolved = false;
+        revealedCode = "";
+
         HideAllNumbers();
     }
 
@@ -72,7 +75,6 @@ public class PrismPuzzleManager : MonoBehaviour
 
         isSolved = true;
 
-        Debug.Log("Prism password revealed: " + revealedCode);
     }
 
     public void HideAllNumbers()
