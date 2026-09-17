@@ -1,108 +1,199 @@
 using UnityEngine;
-using System.Collections; // 必須引入，才能使用協程 (Coroutine)
+using System.Collections;
 
 public class UltimateFlashlightController : MonoBehaviour
 {
     [Header("基本設定")]
-    public KeyCode toggleKey = KeyCode.F; // 開關手電筒的按鍵
-    public bool isOn = false;             // 目前手電筒是否開啟
+    public KeyCode toggleKey = KeyCode.F;
+    public bool isOn = false;
 
-    // ====== 【光的部分：直接控制底下的 WhiteLight】 ======
+    // 玩家目前是否可以操作 F 鍵
+    private bool canToggle = true;
+
+
     [Header("指定光源 (請拖入底下的 WhiteLight)")]
-    public Light _lightSource;            
+    public Light _lightSource;
+
 
     [Header("攻擊後關燈設定")]
-    public float delayTime = 0.5f;        // 被怪物抓到後，延遲關燈的秒數（可在 Inspector 調整）
-    private Coroutine delayTurnOffCoroutine; // 記錄正在執行的倒數，防止重複疊加
+    public float delayTime = 0.5f;
+
+    private Coroutine delayTurnOffCoroutine;
+
 
     [Header("音效設定")]
-    public AudioSource audioSource;       // 播放開關燈音效的組件
-    public AudioClip turnOnSound;        // 開燈音效
-    public AudioClip turnOffSound;       // 關燈音效
+    public AudioSource audioSource;
+    public AudioClip turnOnSound;
+    public AudioClip turnOffSound;
+
 
     void Start()
     {
-        // 移除原本的 GetComponent<Light>()，這樣就不會再去抓父物件身上那個錯的燈了！
-        
         // 初始狀態同步
         if (_lightSource != null)
         {
-            _lightSource.enabled = isOn; // 根據初始設定決定子光源一開始是開還是關
+            _lightSource.enabled = isOn;
         }
 
         if (audioSource == null)
         {
-            audioSource = GetComponent<AudioSource>(); // 自動嘗試取得身上的 AudioSource
+            audioSource = GetComponent<AudioSource>();
         }
     }
 
+
     void Update()
     {
-        // 按下設定的按鍵（預設 F）開關手電筒
+        // =====================================================
+        // 如果已經被怪物攻擊，F 鍵完全失效
+        // =====================================================
+        if (!canToggle)
+        {
+            return;
+        }
+
+
+        // F 開關手電筒
         if (Input.GetKeyDown(toggleKey))
         {
             ToggleFlashlight();
         }
-
-        // ====== 【全面改版優化：大功告成】 ======
-        // 這裡已經徹底移除原本在第 125 行會導致報白字的 ScanForMonster() 函數與呼叫。
-        // 現在改由兩隻怪物（MonsterAI 與 Monster2）在它們各自的 Update 內，
-        // 透過 IsHitByFlashlight() 雷達去主動判定這盞 _lightSource 的開關狀態、位置與角度。
-        // 這不只消除了 CS1061 的錯誤，更完美達成了您的自主偵測型 AI 規劃！
     }
 
+
+    // =========================================================
+    // 玩家正常切換手電筒
+    // =========================================================
     void ToggleFlashlight()
     {
-        // 如果手電筒正處於被怪物強行關閉的倒數中，玩家此時若主動按下 F 鍵，就直接取消倒數
+        // 如果目前不允許操作，就直接忽略
+        if (!canToggle)
+        {
+            return;
+        }
+
+
+        // 如果之前有一般的延遲關燈倒數
+        // 玩家正常操作時可以取消
         if (delayTurnOffCoroutine != null)
         {
             StopCoroutine(delayTurnOffCoroutine);
             delayTurnOffCoroutine = null;
         }
 
+
         isOn = !isOn;
+
+
         if (_lightSource != null)
         {
-            _lightSource.enabled = isOn; // 控制子光源
+            _lightSource.enabled = isOn;
         }
 
-        // 播放開關燈音效
+
+        // 播放音效
         if (audioSource != null)
         {
-            if (isOn && turnOnSound != null) audioSource.PlayOneShot(turnOnSound);
-            else if (!isOn && turnOffSound != null) audioSource.PlayOneShot(turnOffSound);
+            if (isOn && turnOnSound != null)
+            {
+                audioSource.PlayOneShot(turnOnSound);
+            }
+            else if (!isOn && turnOffSound != null)
+            {
+                audioSource.PlayOneShot(turnOffSound);
+            }
         }
     }
 
-    // ====== 統一接口：提供給怪物 AI 攻擊命中玩家時，強行關燈呼叫 ======
+
+    // =========================================================
+    // 原本接口
+    // 要求手電筒延遲關閉
+    // =========================================================
     public void RequestTurnOff()
     {
-        if (!isOn) return;
+        if (!isOn)
+        {
+            return;
+        }
+
 
         if (delayTurnOffCoroutine != null)
         {
             StopCoroutine(delayTurnOffCoroutine);
         }
 
-        delayTurnOffCoroutine = StartCoroutine(DelayTurnOffRoutine());
+
+        delayTurnOffCoroutine =
+            StartCoroutine(DelayTurnOffRoutine());
     }
 
-    // 延遲關燈的協程處理
+
+    // =========================================================
+    // ★ 怪物開始攻擊時呼叫
+    //
+    // 1. 禁止 F 鍵
+    // 2. 手電筒延遲關閉
+    // 3. 玩家無法取消關燈
+    // =========================================================
+    public void DisableByMonsterAttack()
+    {
+        // 先鎖住 F 鍵
+        canToggle = false;
+
+
+        // 清除之前可能存在的倒數
+        if (delayTurnOffCoroutine != null)
+        {
+            StopCoroutine(delayTurnOffCoroutine);
+            delayTurnOffCoroutine = null;
+        }
+
+
+        // 如果手電筒現在是開著的
+        // 開始怪物攻擊後的延遲關燈
+        if (isOn)
+        {
+            delayTurnOffCoroutine =
+                StartCoroutine(DelayTurnOffRoutine());
+        }
+
+
+        Debug.Log(
+            "怪物攻擊：手電筒 F 鍵已停用"
+        );
+    }
+
+
+    // =========================================================
+    // 延遲關燈
+    // =========================================================
     private IEnumerator DelayTurnOffRoutine()
     {
         yield return new WaitForSeconds(delayTime);
 
+
         if (isOn)
         {
             isOn = false;
-            if (_lightSource != null) _lightSource.enabled = false; // 關閉子光源
-            
-            if (audioSource != null && turnOffSound != null)
+
+
+            if (_lightSource != null)
             {
-                audioSource.PlayOneShot(turnOffSound);
+                _lightSource.enabled = false;
+            }
+
+
+            if (audioSource != null &&
+                turnOffSound != null)
+            {
+                audioSource.PlayOneShot(
+                    turnOffSound
+                );
             }
         }
 
-        delayTurnOffCoroutine = null; 
+
+        delayTurnOffCoroutine = null;
     }
 }

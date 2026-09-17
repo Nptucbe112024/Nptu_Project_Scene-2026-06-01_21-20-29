@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0.1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_UseRadianceAmbientProbe: 0
@@ -4168,6 +4168,10 @@ PrefabInstance:
       propertyPath: m_AngularSpeed
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 540528893524011904, guid: 5be7a6959bf0b31418bc0272b100f9bb, type: 3}
+      propertyPath: m_StoppingDistance
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 963927344663494039, guid: 5be7a6959bf0b31418bc0272b100f9bb, type: 3}
       propertyPath: player
       value: 
@@ -4178,7 +4182,7 @@ PrefabInstance:
       objectReference: {fileID: 1949155046}
     - target: {fileID: 963927344663494039, guid: 5be7a6959bf0b31418bc0272b100f9bb, type: 3}
       propertyPath: attackRange
-      value: 2
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 963927344663494039, guid: 5be7a6959bf0b31418bc0272b100f9bb, type: 3}
       propertyPath: detectRange
