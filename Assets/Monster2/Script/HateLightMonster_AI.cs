@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Monster2 : MonoBehaviour {
+public class HateLightMonster_AI : MonoBehaviour {
     private Animator anim;
     private NavMeshAgent agent; 
     
