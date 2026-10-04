@@ -1,31 +1,44 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameOverMenu : MonoBehaviour
+public class GameOverManager : MonoBehaviour
 {
     void Start()
     {
-        // 解鎖滑鼠
+        // 顯示滑鼠
         Cursor.lockState = CursorLockMode.None;
-
-        // 顯示滑鼠游標
         Cursor.visible = true;
 
-        // 保險：如果之前有暫停遊戲，恢復時間
+        // 避免之前有暫停遊戲
         Time.timeScale = 1f;
     }
-    public void Retry()
+
+
+    // ============================================
+    // Retry 按鈕
+    // 回到玩家剛才死亡的關卡
+    // ============================================
+    public void RetryLevel()
     {
-        SceneManager.LoadScene("SampleScene");
+        string lastLevel =
+            PlayerPrefs.GetString(
+                "LastLevel",
+                "Level1"
+            );
+
+        SceneManager.LoadScene(
+            lastLevel
+        );
     }
 
-    public void MainMenu()
-    {
-        SceneManager.LoadScene("StartMenu");
-    }
 
-    public void QuitGame()
+    // ============================================
+    // 回主選單
+    // ============================================
+    public void BackToMainMenu()
     {
-        Application.Quit();
+        SceneManager.LoadScene(
+            "StartMenu"
+        );
     }
 }

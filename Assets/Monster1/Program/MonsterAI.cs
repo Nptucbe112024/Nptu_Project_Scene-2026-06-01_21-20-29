@@ -681,12 +681,18 @@ public class MonsterAI : MonoBehaviour
             return;
         }
 
+        // 記住玩家死亡時所在的關卡
+        string currentScene =
+            SceneManager.GetActiveScene().name;
 
-        Debug.Log(
-            "攻擊動畫完成，切換 GameOver"
+        PlayerPrefs.SetString(
+            "LastLevel",
+            currentScene
         );
 
+        PlayerPrefs.Save();
 
+        // 進入 GameOver
         SceneManager.LoadScene(
             gameOverSceneName
         );
